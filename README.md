@@ -3,15 +3,18 @@
 
 # Question 1 (Naked Twins)
 Q: How do we use constraint propagation to solve the naked twins problem?  
-Well, I would say naked twins is not a problem per se, but a new strategy that can be added
+Well, I would say naked twins is not a problem per se, but a new strategy (constraint) that can be added
 to the constraint propagation loop, helping to reduce the problem space in each iteration.
+This strategy enforces the constraint that if there are two cells/boxes in a unit sharing the same two
+possibilities, any other cells in the unit must not contain those possibilities. 
 
 # Question 2 (Diagonal Sudoku)
 Q: How do we use constraint propagation to solve the diagonal sudoku problem?  
 We solve the diagonal sudoku problem enforcing new constraints that represent the diagonal requirements. In this case
 those constraints can be represented as two new units in unitlist. We would then apply eliminate, naked_twins and only_choice 
 repeteadly until the board converges into a solution or it stalls. 
-As we added both diagonals as units (constraints), the diagonal requirements would be fulfilled.
+As we added both diagonals as units, the solver enforces that in both units (diagonals) there must be a value just once, 
+solving the diagonal sudoku.
 
 ### Install
 
