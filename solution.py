@@ -2,6 +2,7 @@ assignments = []
 
 ############################
 # Setting up our environment
+# Based on utils.py
 ############################
 def cross(A, B):
     "Cross product of elements in A and elements in B."
@@ -76,6 +77,7 @@ def naked_twins(values):
 
 def grid_values(grid):
     """
+    Source: Extracted from my solution to a exercise included in the AIND lessons.
     Convert grid into a dict of {square: char} with '123456789' for empties.
     Args:
         grid(string) - A grid in string form.
@@ -88,6 +90,7 @@ def grid_values(grid):
 
 def display(values):
     """
+    Source: utils.py from the AIND lessons.
     Display the values as a 2-D grid.
     Args:
         values(dict): The sudoku in dictionary form
@@ -101,7 +104,9 @@ def display(values):
     return
 
 def eliminate(values):
-    """Eliminate values from peers of each box with a single value.
+    """
+    Source: Extracted from my solution to a exercise included in the AIND lessons.
+    Eliminate values from peers of each box with a single value.
 
     Go through all the boxes, and whenever there is a box with a single value,
     eliminate this value from the set of values of all its peers.
@@ -118,13 +123,17 @@ def eliminate(values):
     return values
 
 def only_choice(values):
-    """Finalize all values that are the only choice for a unit.
+    """
+    Source: Extracted from my solution to a exercise included in the AIND lessons.
+    Finalize all values that are the only choice for a unit.
 
     Go through all the units, and whenever there is a unit with a value
     that only fits in one box, assign the value to this box.
 
-    Input: Sudoku in dictionary form.
-    Output: Resulting Sudoku in dictionary form after filling in only choices.
+    Args:
+        values: Sudoku in dictionary form.
+    Returns:
+        Resulting Sudoku in dictionary form after filling in only choices.
     """
     def check_unit(box, unit):
         """
@@ -154,6 +163,15 @@ def only_choice(values):
     return values
 
 def reduce_puzzle(values):
+    """
+    Source: Extracted from my solution to a exercise included in the AIND lessons.
+    Iterate eliminate(), naked_twins() and only_choice(). If at some point, there is a box with no available values, return False.
+
+    Args:
+        values: Sudoku in dictionary form.
+    Returns:
+        Resulting Sudoku after passing through a constraint propagation loop. It may be solved or stalled.
+    """
     stalled = False
     while not stalled:
         # Check how many boxes have a determined value
@@ -176,30 +194,34 @@ def reduce_puzzle(values):
     return values
 
 def search(values):
-    "Using depth-first search and propagation, create a search tree and solve the sudoku."
+    """
+    Source: Extracted from my solution to a exercise included in the AIND lessons.
+    Using depth-first search and propagation, create a search tree and solve the sudoku.
+    
+    Args:
+        values: Sudoku in dictionary form.
+    Returns:
+        The dictionary representation of the final sudoku grid. False if no solution exists.
+    """
     # First, reduce the puzzle using the previous function
     values = reduce_puzzle(values)
-    if values == False:
+    if values == False: # if it doesn't pass the sanity check, we avoid doing DFS
         return False
     
     # Choose one of the unfilled squares with the fewest possibilities
     boxs_to_check = [(box, value) for box, value in values.items() if len(value) > 1]
-    if len(boxs_to_check) == 0:
+    if len(boxs_to_check) == 0: # if there no boxs_to_check left, we've solved it!
         return values
-    boxs_to_check.sort(key = lambda box: len(box[1]))
-    box, _ = boxs_to_check[0]
+    boxs_to_check.sort(key = lambda box: len(box[1])) # we sort this list by how many possibilities each box has 
+    box, _ = boxs_to_check[0] # we get the box with the fewest possibilities
     
     # Now use recursion to solve each one of the resulting sudokus, and if one returns a value (not False), return that answer!
     for possibility in values[box]:
-        new_values = values.copy()
-        new_values[box] = possibility
-        results = search(new_values)
-        if results:
+        new_values = values.copy() # we want to pass values's value, not it's memory reference.
+        new_values[box] = possibility 
+        results = search(new_values) # and we solve it assuming that possibility for that box
+        if results: # if the results are not false, we return them
             return results
-
-def add_diagonal_constraint():
-    diag_units = [[row+col for row_n, row in enumerate(rows) for col_n, col in enumerate(cols) if row_n == col_n], [row+col for row_n, row in enumerate(rows) for col_n, col in enumerate(cols) if (8-row_n) == col_n]]
-    unitlist = row_units + column_units + square_units + diag_units
 
 def solve(grid):
     """
