@@ -101,6 +101,16 @@ def display(values):
     return
 
 def eliminate(values):
+    """Eliminate values from peers of each box with a single value.
+
+    Go through all the boxes, and whenever there is a box with a single value,
+    eliminate this value from the set of values of all its peers.
+
+    Args:
+        values: Sudoku in dictionary form.
+    Returns:
+        Resulting Sudoku in dictionary form after eliminating values.
+    """
     for box, value in values.items():
         if len(value) == 1:
             for peer in peers[box]:
@@ -108,9 +118,17 @@ def eliminate(values):
     return values
 
 def only_choice(values):
+    """Finalize all values that are the only choice for a unit.
+
+    Go through all the units, and whenever there is a unit with a value
+    that only fits in one box, assign the value to this box.
+
+    Input: Sudoku in dictionary form.
+    Output: Resulting Sudoku in dictionary form after filling in only choices.
+    """
     def check_unit(box, unit):
         """
-        Mini function for checking if a box is solved using Only Choice over a unit, and if it is, getting it's value.
+        Check if a box is solved using Only Choice over a unit, and if it is, getting it's value.
         TODO: Maybe I should take it outside, so it doesn't redefine every time only_choice is called.
         """
         # We check all possible values in the unit, then substract those items from the possible values of the box
@@ -138,7 +156,6 @@ def only_choice(values):
 def reduce_puzzle(values):
     stalled = False
     while not stalled:
-
         # Check how many boxes have a determined value
         solved_values_before = len([box for box in values.keys() if len(values[box]) == 1])
 

@@ -13,8 +13,7 @@ Q: How do we use constraint propagation to solve the diagonal sudoku problem?
 We solve the diagonal sudoku problem enforcing new constraints that represent the diagonal requirements. In this case
 those constraints can be represented as two new units in unitlist. We would then apply eliminate, naked_twins and only_choice 
 repeteadly until the board converges into a solution or it stalls. 
-As we added both diagonals as units, the solver enforces that in both units (diagonals) there must be a value just once, 
-solving the diagonal sudoku.
+As we added both diagonals as units, the solver enforces the same constraints as the other units during the constraint propagation phase.
 
 ### Install
 
