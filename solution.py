@@ -24,6 +24,9 @@ unitlist = row_units + column_units + square_units + diag_units
 
 units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
 peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
+#################################
+# End
+#################################
 
 def assign_value(values, box, value):
     """
