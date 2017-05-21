@@ -49,16 +49,14 @@ def naked_twins(values):
         the values dictionary with the naked twins eliminated from peers.
     """
     naked_twins = dict()
-    twin_boxes = list()
     # Find all instances of naked twins
     for box, box_units in units.items(): # we look for each box and it's units
         box_value = values[box] # we get that box value
-        if len(box_value) == 2 and box not in twin_boxes: # if it's length 2 it CAN be a twin. Also, since this is a "symmetrical" problem, we don't need to check for a twin already checked.
+        if len(box_value) == 2: # if it's length 2 it CAN be a twin.
              for unit_boxes in box_units: # For every unit (horizontal, vertical, square or diagonal) that box belongs
                 unit_peers = [peer for peer in unit_boxes if peer != box] # We get peers (every box in the unit except the box we're looking at from the beginning)
                 for unit_peer in unit_peers: # We look for every box in that unit
                     if values[unit_peer] == box_value: # If the box is not the box we are exploring, and it shares the same value we should be happy, because we found some twins.
-                        twin_boxes.append(unit_peer) # add the peer to our twin_boxes list, so we don't look at the same pair twice
                         naked_twins[box] = (unit_peer, box_value, unit_peers) # we assign it's peer, value and peers to a dictionary. 
 
     # Eliminate the naked twins as possibilities for their peers
@@ -67,7 +65,7 @@ def naked_twins(values):
         twins_values = [possibility for possibility in data[1]] # It's values
         unit_peers = data[2] # and this box's peers to be checked
         for unit_peer in unit_peers:  # for each peer
-            if unit_peer != twin and len(values[unit_peer]) > 2: # we check if this peer is not the actual twin of the box, and if has at least 3 chars
+            if unit_peer != twin and len(values[unit_peer]) > 1: # we check if this peer is not the actual twin of the box, and if has at least 2 chars (box not already solved)
                 new_values = ''.join([prior_value for prior_value in values[unit_peer] if prior_value not in twins_values]) # we eliminate the naked twins possibilities from their peer
                 values = assign_value(values, unit_peer, new_values) # and we reassignate that peer values
 
