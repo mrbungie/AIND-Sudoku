@@ -1,6 +1,29 @@
 assignments = []
 
-from time import sleep
+############################
+# Setting up our environment
+############################
+def cross(A, B):
+    "Cross product of elements in A and elements in B."
+    return [s+t for s in A for t in B]
+
+rows = 'ABCDEFGHI'
+cols = '123456789'
+
+boxes = cross(rows, cols)
+
+row_units = [cross(r, cols) for r in rows]
+column_units = [cross(rows, c) for c in cols]
+square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
+
+# Main differences over utils.py. It enables the Question 2 constraint, simply adding new two units (both diagonals).
+# I use enumerate to join row with columns, so when A(row_n=0) = 1(col_n=0) they merge as 'A1'. In the case of the "reverse" diagonal I just substract row_n to 8 (due to the length of the board and zero-indexed lists) and join them.
+# Then I just add both units to the unitlist.
+diag_units = [[row+col for row_n, row in enumerate(rows) for col_n, col in enumerate(cols) if row_n == col_n], [row+col for row_n, row in enumerate(rows) for col_n, col in enumerate(cols) if (8-row_n) == col_n]]
+unitlist = row_units + column_units + square_units + diag_units
+
+units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
+peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
 
 def assign_value(values, box, value):
     """
@@ -17,23 +40,6 @@ def assign_value(values, box, value):
         assignments.append(values.copy())
     return values
 
-def cross(A, B):
-    "Cross product of elements in A and elements in B."
-    return [s+t for s in A for t in B]
-
-rows = 'ABCDEFGHI'
-cols = '123456789'
-
-boxes = cross(rows, cols)
-
-row_units = [cross(r, cols) for r in rows]
-column_units = [cross(rows, c) for c in cols]
-square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
-diag_units = [[row+col for row_n, row in enumerate(rows) for col_n, col in enumerate(cols) if row_n == col_n], [row+col for row_n, row in enumerate(rows) for col_n, col in enumerate(cols) if (8-row_n) == col_n]]
-unitlist = row_units + column_units + square_units + diag_units
-units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
-peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
-
 def naked_twins(values):
     """Eliminate values using the naked twins strategy.
     Args:
@@ -47,22 +53,23 @@ def naked_twins(values):
     # Find all instances of naked twins
     for box, box_units in units.items(): # we look for each box and it's units
         box_value = values[box] # we get that box value
-        if len(box_value) == 2 and box not in twin_boxes: # if it's length 2 it CAN be a twin. Also, since this is a "simmetrical" problem, we don't need to check for a twin already checked.
-             for unit_peers in box_units: # For every unit (horizontal, vertical or square) of that box
-                 for unit_peer in unit_peers: # We look for every peer in that unit
-                     if unit_peer != box and values[unit_peer] == box_value: # If that peer is not the box itself, and it shares the same value we should be happy, because we found some twins.
-                        twin_boxes.append(unit_peer)
-                        naked_twins[box] = (unit_peer, box_value, unit_peers)
+        if len(box_value) == 2 and box not in twin_boxes: # if it's length 2 it CAN be a twin. Also, since this is a "symmetrical" problem, we don't need to check for a twin already checked.
+             for unit_boxes in box_units: # For every unit (horizontal, vertical, square or diagonal) that box belongs
+                unit_peers = [peer for peer in unit_boxes if peer != box] # We get peers (every box in the unit except the box we're looking at from the beginning)
+                for unit_peer in unit_peers: # We look for every box in that unit
+                    if values[unit_peer] == box_value: # If the box is not the box we are exploring, and it shares the same value we should be happy, because we found some twins.
+                        twin_boxes.append(unit_peer) # add the peer to our twin_boxes list, so we don't look at the same pair twice
+                        naked_twins[box] = (unit_peer, box_value, unit_peers) # we assign it's peer, value and peers to a dictionary. 
 
     # Eliminate the naked twins as possibilities for their peers
-    for box, data in naked_twins.items():
-        twin = data[0]
-        twin_possibilities = [possibility for possibility in data[1]]
-        unit_peers = data[2]
-        for unit_peer in unit_peers:
-            if unit_peer != twin and len(values[unit_peer]) > 2:
-                new_possibilities = ''.join([prior_possibility for prior_possibility in values[unit_peer] if prior_possibility not in twin_possibilities])
-                values = assign_value(values, unit_peer, new_possibilities)
+    for box, data in naked_twins.items(): # for every box that has a naked twin, get it and it's "data" (twin, possible_values, and the box peers)
+        twin = data[0] # We this box twin
+        twins_values = [possibility for possibility in data[1]] # It's values
+        unit_peers = data[2] # and this box's peers to be checked
+        for unit_peer in unit_peers:  # for each peer
+            if unit_peer != twin and len(values[unit_peer]) > 2: # we check if this peer is not the actual twin of the box, and if has at least 3 chars
+                new_values = ''.join([prior_value for prior_value in values[unit_peer] if prior_value not in twins_values]) # we eliminate the naked twins possibilities from their peer
+                values = assign_value(values, unit_peer, new_values) # and we reassignate that peer values
 
     return values
 
@@ -101,20 +108,27 @@ def eliminate(values):
 
 def only_choice(values):
     def check_unit(box, unit):
-        unit_values = set()
+        """
+        Mini function for checking if a box is solved using Only Choice over a unit, and if it is, getting it's value.
+        TODO: Maybe I should take it outside, so it doesn't redefine every time only_choice is called.
+        """
+        # We check all possible values in the unit, then substract those items from the possible values of the box
+        unit_values = set() # we are using sets for comparison in this case
         for unit_box in unit:
             if unit_box != box:
                 unit_values = unit_values.union(set(values[unit_box]))
         possibles = list(set(values[box]) - unit_values)
+        # if the are only 1 possible value, we've solved the box
         if len(possibles) == 1:
             return possibles[0], True # Send true to check if already solved.
         else:
             return values[box], False
     
+    # We check for every box
     for box, box_units in units.items():
-        only_choice_solved = False
+        only_choice_solved = False 
         for unit in box_units:
-            if not only_choice_solved:
+            if not only_choice_solved: # if we solve the box, we stop checking the remaining units
                 new_value, only_choice_solved = check_unit(box, unit)
                 values = assign_value(values, box, new_value)
             
@@ -164,6 +178,10 @@ def search(values):
         results = search(new_values)
         if results:
             return results
+
+def add_diagonal_constraint():
+    diag_units = [[row+col for row_n, row in enumerate(rows) for col_n, col in enumerate(cols) if row_n == col_n], [row+col for row_n, row in enumerate(rows) for col_n, col in enumerate(cols) if (8-row_n) == col_n]]
+    unitlist = row_units + column_units + square_units + diag_units
 
 def solve(grid):
     """
