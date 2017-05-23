@@ -17,8 +17,8 @@ row_units = [cross(r, cols) for r in rows]
 column_units = [cross(rows, c) for c in cols]
 square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
 
-# Main differences over utils.py. It enables the Question 2 constraint, simply adding new two units (both diagonals).
-# I use enumerate to join row with columns, so when A(row_n=0) = 1(col_n=0) they merge as 'A1'. In the case of the "reverse" diagonal I just substract row_n to 8 (due to the length of the board and zero-indexed lists) and join them.
+# Main differences over the originalutils.py. It enables the Question 2 constraint by simply adding new two units (both diagonals).
+# I use enumerate to join row with columns, so when A(row_n=0) = 1(col_n=0) they merge as 'A1' and so on. In the case of the "reverse" diagonal I just substract row_n to 8 (due to the length of the board and zero-indexed lists) and join them.
 # Then I just add both units to the unitlist.
 diag_units = [[row+col for row_n, row in enumerate(rows) for col_n, col in enumerate(cols) if row_n == col_n], [row+col for row_n, row in enumerate(rows) for col_n, col in enumerate(cols) if (8-row_n) == col_n]]
 unitlist = row_units + column_units + square_units + diag_units
@@ -54,19 +54,19 @@ def naked_twins(values):
     """
     naked_twins = dict()
     # Find all instances of naked twins
-    for box, box_units in units.items(): # we look for each box and it's units
+    for box, box_units in units.items(): # we look for each box and its units
         box_value = values[box] # we get that box value
-        if len(box_value) == 2: # if it's length 2 it CAN be a twin.
+        if len(box_value) == 2: # if its length 2 it CAN be a twin.
              for unit_boxes in box_units: # For every unit (horizontal, vertical, square or diagonal) that box belongs
                 unit_peers = [peer for peer in unit_boxes if peer != box] # We get peers (every box in the unit except the box we're looking at from the beginning)
                 for unit_peer in unit_peers: # We look for every box in that unit
                     if values[unit_peer] == box_value: # If the box is not the box we are exploring, and it shares the same value we should be happy, because we found some twins.
-                        naked_twins[box] = (unit_peer, box_value, unit_peers) # we assign it's peer, value and peers to a dictionary. 
+                        naked_twins[box] = (unit_peer, box_value, unit_peers) # we assign its peer, value and peers to a dictionary. 
 
     # Eliminate the naked twins as possibilities for their peers
-    for box, data in naked_twins.items(): # for every box that has a naked twin, get it and it's "data" (twin, possible_values, and the box peers)
-        twin = data[0] # We this box twin
-        twins_values = [possibility for possibility in data[1]] # It's values
+    for box, data in naked_twins.items(): # for every box that has a naked twin, get it and its "data" (twin, possible_values, and the box peers)
+        twin = data[0] # We get this box twin from the dictionary
+        twins_values = [possibility for possibility in data[1]] # Its values
         unit_peers = data[2] # and this box's peers to be checked
         for unit_peer in unit_peers:  # for each peer
             if unit_peer != twin and len(values[unit_peer]) > 1: # we check if this peer is not the actual twin of the box, and if has at least 2 chars (box not already solved)
@@ -77,7 +77,7 @@ def naked_twins(values):
 
 def grid_values(grid):
     """
-    Source: Extracted from my solution to a exercise included in the AIND lessons.
+    Source: Extracted from my solution to an exercise included in the AIND lessons.
     Convert grid into a dict of {square: char} with '123456789' for empties.
     Args:
         grid(string) - A grid in string form.
@@ -105,7 +105,7 @@ def display(values):
 
 def eliminate(values):
     """
-    Source: Extracted from my solution to a exercise included in the AIND lessons.
+    Source: Extracted from my solution to an exercise included in the AIND lessons.
     Eliminate values from peers of each box with a single value.
 
     Go through all the boxes, and whenever there is a box with a single value,
@@ -124,7 +124,7 @@ def eliminate(values):
 
 def only_choice(values):
     """
-    Source: Extracted from my solution to a exercise included in the AIND lessons.
+    Source: Extracted from my solution to an exercise included in the AIND lessons.
     Finalize all values that are the only choice for a unit.
 
     Go through all the units, and whenever there is a unit with a value
@@ -164,7 +164,7 @@ def only_choice(values):
 
 def reduce_puzzle(values):
     """
-    Source: Extracted from my solution to a exercise included in the AIND lessons.
+    Source: Extracted from my solution to an exercise included in the AIND lessons.
     Iterate eliminate(), naked_twins() and only_choice(). If at some point, there is a box with no available values, return False.
 
     Args:
@@ -195,7 +195,7 @@ def reduce_puzzle(values):
 
 def search(values):
     """
-    Source: Extracted from my solution to a exercise included in the AIND lessons.
+    Source: Extracted from my solution to an exercise included in the AIND lessons.
     Using depth-first search and propagation, create a search tree and solve the sudoku.
     
     Args:
